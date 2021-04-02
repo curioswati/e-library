@@ -9,6 +9,9 @@ flask-admin = "*"
 flask-sqlalchemy = "*"
 flask-migrate = "*"
 flask-script = "*"
+flask-restful = "*"
+flask-marshmallow = "*"
+marshmallow-sqlalchemy = "*"
 
 [requires]
 python_version = "3.6"
