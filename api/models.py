@@ -55,11 +55,12 @@ class Book(db.Model):
     price = db.Column(db.Integer(), default=30)
     stock = db.Column(db.Integer, default=1)
 
-    def __init__(self, title, isbn, author, stock):
+    def __init__(self, title, isbn, author, stock, price):
         self.title = title
         self.isbn = isbn
         self.author = author
         self.stock = stock
+        self.price = price
 
     def __unicode__(self):
         return self.title
