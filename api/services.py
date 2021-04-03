@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 
-from api.models import Book, db
-from api.serializers import book_schema
+from api.models import Book, User, db
+from api.serializers import book_schema, user_schema
 
 
 class BookService():
@@ -65,4 +65,79 @@ class BookService():
         db.session.delete(book)
         db.session.commit()
 
-        return book.id
+        if book:
+            db.session.delete(book)
+            db.session.commit()
+            return book.id
+        return
+
+
+class UserService():
+    '''
+    Bridge between user resource and model.
+    '''
+    def get_users(self):
+        users = User.query.all()
+        users_serialized = [user_schema.dump(user) for user in users]
+        return users_serialized
+
+    def get_user(self, user_id):
+        user = User.query.get(user_id)
+
+        if user:
+            user_serialized = user_schema.dump(user)
+            return user_serialized
+        return
+
+    def add_user(self, user_json):
+        new_user = user_schema.load(user_json)
+
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+
+        except IntegrityError as e:
+            db.session.rollback()
+
+            existing_user = User.query.filter_by(email=user_json['email']).one()
+            user_serialized = user_schema.dump(existing_user)
+
+            e.message = user_serialized['url']
+            raise e
+        else:
+            user_serialized = user_schema.dump(new_user)
+            return user_serialized
+
+    def update_user(self, user_id, data):
+        existing_user = User.query.get(user_id)
+
+        if not existing_user:
+            new_user = user_schema.load(data)
+            db.session.add(new_user)
+            db.session.commit()
+
+            user_serialized = user_schema.dump(new_user)
+            return user_serialized
+
+        else:
+            if 'email' in data:
+                existing_user.email = data.pop('email')
+            if 'first_name' in data:
+                existing_user.first_name = data.pop('first_name')
+            if 'last_name' in data:
+                existing_user.last_name = data.pop('last_name')
+            if 'contact' in data:
+                existing_user.contact = data.pop('contact')
+
+            db.session.add(existing_user)
+            db.session.commit()
+            return
+
+    def delete_user(self, user_id):
+        user = User.query.get(user_id)
+
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+            return user.id
+        return

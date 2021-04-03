@@ -38,8 +38,50 @@ class Books(Resource, BookService):
     def post(self):
         book = self.add_book(request.get_json())
 
-        if book:
-            book_serialized = book_schema.dump(book)
-            abort(409, message=f"Book already exists: {book_serialized['url']}")
+class User(Resource, UserService):
+    def get(self, user_id=None):
+        user = self.get_user(user_id)
 
-        return book['url'], 201
+        if not user:
+            abort(404, message=STATUS_404)
+
+        return user, 200
+
+    def put(self, user_id):
+        try:
+            request_data = request.get_json()
+        except BadRequest:
+            abort(400, message=STATUS_400)
+
+        data_errors = user_schema.validate(request_data, partial=True)
+        if data_errors:
+            abort(400, message=data_errors)
+
+        user = self.update_user(user_id, request_data)
+        if user:
+            return user['url'], 201
+        else:
+            return '', 204
+
+    def delete(self, user_id):
+        user_id = self.delete_user(user_id)
+
+        if user_id:
+            return user_id, 200
+        else:
+            abort(404, message=STATUS_404)
+
+
+class Users(Resource, UserService):
+    def get(self):
+        return self.get_users()
+
+    def post(self):
+        request_data = request.get_json()
+
+        try:
+            user = self.add_user(request_data)
+        except IntegrityError as e:
+            abort(409, message=STATUS_409 % e.message)
+        else:
+            return user['url'], 201
