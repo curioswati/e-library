@@ -1,12 +1,11 @@
 from flask import request
 from flask_restful import Resource, abort
 from sqlalchemy.exc import IntegrityError
-from werkzeug.exceptions import BadRequest
 
 from api.decorators import validate_request_data
 from api.serializers import book_schema, user_schema
 from api.services import BookService, UserService
-from api.status_messages import STATUS_400, STATUS_404, STATUS_409
+from api.status_messages import STATUS_404, STATUS_409
 
 
 class Book(Resource, BookService):
@@ -64,14 +63,7 @@ class User(Resource, UserService):
 
     @validate_request_data(user_schema, partial=True)
     def put(self, user_id):
-        try:
-            request_data = request.get_json()
-        except BadRequest:
-            abort(400, message=STATUS_400)
-
-        data_errors = user_schema.validate(request_data, partial=True)
-        if data_errors:
-            abort(400, message=data_errors)
+        request_data = request.get_json()
 
         user = self.update_user(user_id, request_data)
         if user:
