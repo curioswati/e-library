@@ -15,9 +15,11 @@ class BookService():
 
     def get_book(self, book_id):
         book = Book.query.get(book_id)
-        book_serialized = book_schema.dump(book)
 
-        return book_serialized
+        if book:
+            book_serialized = book_schema.dump(book)
+            return book_serialized
+        return
 
     def add_book(self, book_json):
         new_book = book_schema.load(book_json)
@@ -25,13 +27,17 @@ class BookService():
         try:
             db.session.add(new_book)
             db.session.commit()
-        except IntegrityError:
+        except IntegrityError as e:
             db.session.rollback()
+
             existing_book = Book.query.filter_by(isbn=book_json['isbn']).one()
             book_serialized = book_schema.dump(existing_book)
-            return book_serialized
+
+            e.message = book_serialized['url']
+            raise e
         else:
-            return
+            book_serialized = book_schema.dump(new_book)
+            return book_serialized
 
     def update_book(self, book_id, data):
         existing_book = Book.query.get(book_id)
@@ -62,8 +68,6 @@ class BookService():
 
     def delete_book(self, book_id):
         book = Book.query.get(book_id)
-        db.session.delete(book)
-        db.session.commit()
 
         if book:
             db.session.delete(book)
