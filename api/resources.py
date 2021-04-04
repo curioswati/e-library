@@ -3,9 +3,9 @@ from flask_restful import Resource, abort
 from sqlalchemy.exc import IntegrityError
 
 from api.decorators import validate_request_data
+from api.messages import STATUS_404, STATUS_409
 from api.serializers import book_schema, user_schema
 from api.services import BookService, UserService
-from api.status_messages import STATUS_404, STATUS_409
 
 
 class Book(Resource, BookService):
