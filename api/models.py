@@ -16,7 +16,7 @@ class User(db.Model):
     last_name = db.Column(db.String(255))
     contact = db.Column(db.String(10), nullable=False)
 
-    def __init__(self, email, first_name, last_name, contact):
+    def __init__(self, first_name, contact, email=None, last_name=None):
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
@@ -55,12 +55,15 @@ class Book(db.Model):
     price = db.Column(db.Integer(), default=30)
     stock = db.Column(db.Integer, default=1)
 
-    def __init__(self, title, isbn, author, stock, price):
+    def __init__(self, title, isbn, author, stock=None, price=None):
         self.title = title
         self.isbn = isbn
         self.author = author
-        self.stock = stock
-        self.price = price
+
+        if stock:
+            self.stock = stock
+        if price:
+            self.price = price
 
     def __unicode__(self):
         return self.title
@@ -79,15 +82,20 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     member = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     book = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    num_copies = db.Column(db.Integer, default=1)
     rent = db.Column(db.Integer, nullable=False)
-    date_rented = db.Column(db.DateTime, nullable=False)
+    date_rented = db.Column(db.DateTime, default=datetime.now)
     date_return = db.Column(db.DateTime)
 
-    def __init__(self, member, book, rent, date_rented, date_return):
+    def __init__(self, member, book, num_copies, rent, date_rented=None, date_return=None):
         self.member = member
         self.book = book
+        self.num_copies = num_copies
         self.rent = rent
-        self.date_rented = date_rented
+
+        if date_rented:
+            self.date_rented = date_rented
+
         self.date_return = date_return
 
     def __repr__(self):
