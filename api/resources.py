@@ -1,11 +1,12 @@
 from flask import request
 from flask_restful import Resource, abort
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 
 from api.decorators import validate_request_data
 from api.messages import STATUS_404, STATUS_409
-from api.serializers import book_schema, user_schema
-from api.services import BookService, UserService
+from api.serializers import book_schema, transaction_schema, user_schema
+from api.services import BookService, TransactionService, UserService
 
 
 class Book(Resource, BookService):
@@ -94,3 +95,38 @@ class Users(Resource, UserService):
             abort(409, message=STATUS_409 % e.message)
         else:
             return user['url'], 201
+
+
+class Transaction(Resource, TransactionService):
+    def get(self, transaction_id=None):
+        transaction = self.get_transaction(transaction_id)
+
+        if not transaction:
+            abort(404, message=STATUS_404)
+
+        return transaction, 200
+
+    @validate_request_data(transaction_schema, partial=True)
+    def put(self, transaction_id):
+        try:
+            self.update_transaction(transaction_id)
+        except NoResultFound:
+            abort(404, message=STATUS_404)
+        else:
+            return '', 204
+
+
+class Transactions(Resource, TransactionService):
+    def get(self):
+        return self.get_transactions()
+
+    @validate_request_data(transaction_schema, partial=True)
+    def post(self):
+        request_data = request.get_json()
+
+        try:
+            transaction = self.add_transaction(request_data)
+        except ValueError as e:
+            abort(409, message=e.args[0])
+        else:
+            return transaction['url'], 201

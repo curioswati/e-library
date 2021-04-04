@@ -1,7 +1,12 @@
-from sqlalchemy.exc import IntegrityError
+from datetime import datetime
 
-from api.models import Book, User, db
-from api.serializers import book_schema, user_schema
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
+
+from api.constants import MAX_ALLOWED_DUE
+from api.messages import OUT_OF_STOCK, OVERDUE, STOCK_SHORTAGE
+from api.models import Book, Transaction, User, db
+from api.serializers import book_schema, transaction_schema, user_schema
 
 
 class BookService():
@@ -61,7 +66,6 @@ class BookService():
                 existing_book.price = data.pop('price')
             if 'stock' in data:
                 existing_book.stock = data.pop('stock')
-
             db.session.add(existing_book)
             db.session.commit()
             return
@@ -132,7 +136,6 @@ class UserService():
                 existing_user.last_name = data.pop('last_name')
             if 'contact' in data:
                 existing_user.contact = data.pop('contact')
-
             db.session.add(existing_user)
             db.session.commit()
             return
@@ -144,4 +147,71 @@ class UserService():
             db.session.delete(user)
             db.session.commit()
             return user.id
+        return
+
+
+class TransactionService():
+    '''
+    Bridge between transaction resource and model.
+    '''
+    def get_transactions(self):
+        transactions = Transaction.query.all()
+        transactions_serialized = [
+                transaction_schema.dump(transaction) for transaction in transactions
+        ]
+        return transactions_serialized
+
+    def get_transaction(self, transaction_id):
+        transaction = Transaction.query.get(transaction_id)
+
+        if transaction:
+            transaction_serialized = transaction_schema.dump(transaction)
+            return transaction_serialized
+        return
+
+    def add_transaction(self, transaction_json):
+        book_id = transaction_json.get('book')
+        member_id = transaction_json.get('book')
+        num_copies = int(transaction_json.get('num_copies'))
+
+        member_occupied_books = Transaction.query.filter_by(
+                                                            member=member_id,
+                                                            date_return=None
+                                                            )
+        total_due = sum([int(book.rent) for book in member_occupied_books])
+        if total_due > MAX_ALLOWED_DUE:
+            raise ValueError(OVERDUE)
+
+        book = Book.query.get(book_id)
+        if not book.stock:
+            raise ValueError(OUT_OF_STOCK)
+        elif book.stock < num_copies:
+            raise ValueError(STOCK_SHORTAGE % book.stock)
+        else:
+            book.stock -= int(num_copies)
+
+        rent = num_copies * book.price
+        transaction_json['rent'] = rent
+        new_transaction = transaction_schema.load(transaction_json)
+        db.session.add(new_transaction)
+        db.session.add(book)
+        db.session.commit()
+
+        transaction_serialized = transaction_schema.dump(new_transaction)
+        return transaction_serialized
+
+    def update_transaction(self, transaction_id):
+        transaction = Transaction.query.get(transaction_id)
+
+        if not transaction:
+            raise NoResultFound
+
+        book = Book.query.get(transaction.book)
+        num_copies = transaction.num_copies
+
+        book.stock += num_copies
+        transaction.date_return = datetime.now()
+        db.session.add(transaction)
+        db.session.add(book)
+        db.session.commit()
         return

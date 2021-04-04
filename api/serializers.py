@@ -1,7 +1,7 @@
 from flask_marshmallow import Marshmallow
 from marshmallow import post_load
 
-from api.models import Book, User
+from api.models import Book, Transaction, User
 
 ma = Marshmallow()
 
@@ -36,5 +36,21 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         return User(**data)
 
 
+class TransactionSchema(ma.SQLAlchemyAutoSchema):
+    '''
+    Serializes rent from and to DB.
+    '''
+    class Meta:
+        model = Transaction
+        include_fk = True
+
+    url = ma.URLFor('transaction', values=dict(transaction_id='<id>'))
+
+    @post_load
+    def make_transaction(self, data, **kwargs):
+        return Transaction(**data)
+
+
 book_schema = BookSchema()
 user_schema = UserSchema()
+transaction_schema = TransactionSchema()
