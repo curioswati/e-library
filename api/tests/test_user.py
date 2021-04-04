@@ -25,7 +25,7 @@ class UserResourceTest(unittest.TestCase):
             db.session.add(self.user)
             db.session.commit()
 
-    def test_get_user_success(self):
+    def test_get_user_200(self):
         # When
         response = self.client.get('/api/v1/users/1/')
 
@@ -49,7 +49,7 @@ class UserResourceTest(unittest.TestCase):
         self.assertEqual(1, len(response.json))
         self.assertFalse(user_schema.validate(response.json[0]))
 
-    def test_post_user_success(self):
+    def test_post_user_201(self):
         # Given
         data = {
             "email": "xyz@example.com",
@@ -130,7 +130,7 @@ class UserResourceTest(unittest.TestCase):
         self.assertEqual(201, response.status_code)
         assert re.match(r'/api/v1/users/\d+/', response.json)
 
-    def test_delete_user_success(self):
+    def test_delete_user_200(self):
         # When
         response = self.client.delete(f'/api/v1/users/1/')
 

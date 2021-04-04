@@ -26,7 +26,7 @@ class BookResourceTest(unittest.TestCase):
             db.session.add(self.book)
             db.session.commit()
 
-    def test_get_book_success(self):
+    def test_get_book_200(self):
         # When
         response = self.client.get('/api/v1/books/1/')
 
@@ -50,7 +50,7 @@ class BookResourceTest(unittest.TestCase):
         self.assertEqual(1, len(response.json))
         self.assertFalse(book_schema.validate(response.json[0]))
 
-    def test_post_book_success(self):
+    def test_post_book_201(self):
         # Given
         data = {
             "stock": 5,
@@ -135,7 +135,7 @@ class BookResourceTest(unittest.TestCase):
         self.assertEqual(201, response.status_code)
         assert re.match(r'/api/v1/books/\d+/', response.json)
 
-    def test_delete_book_success(self):
+    def test_delete_book_200(self):
         # When
         response = self.client.delete(f'/api/v1/books/1/')
 
