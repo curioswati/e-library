@@ -1,5 +1,6 @@
 STATUS_400 = 'Invalid Data'
 STATUS_404 = 'Resource not found'
+STATUS_405 = 'Operation not allowed'
 STATUS_409 = 'Resource already exists:  %s'
 OVERDUE = 'Rent Overdue'
 STOCK_SHORTAGE = 'Only %s books available'

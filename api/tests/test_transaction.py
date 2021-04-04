@@ -107,11 +107,8 @@ class TransactionResourceTest(unittest.TestCase):
             self.assertEqual(STOCK_SHORTAGE % book.stock, response.json['message'])
 
     def test_put_transaction_204(self):
-        # Given
-        data = {}
-
         # When
-        response = self.client.put(f'/api/v1/transactions/1/', json=data)
+        response = self.client.put(f'/api/v1/transactions/1/')
 
         # Then
         self.assertEqual(204, response.status_code)
@@ -122,14 +119,21 @@ class TransactionResourceTest(unittest.TestCase):
                              datetime.now().today().date())
 
     def test_put_transaction_404(self):
-        # Given
-        data = {}
-
         # When
-        response = self.client.put(f'/api/v1/transactions/2/', json=data)
+        response = self.client.put(f'/api/v1/transactions/2/')
 
         # Then
         self.assertEqual(404, response.status_code)
+
+    def test_put_transaction_405(self):
+        # Given
+        data = {"rent": 40}
+
+        # When
+        response = self.client.put(f'/api/v1/transactions/1/', json=data)
+
+        # Then
+        self.assertEqual(405, response.status_code)
 
     def tearDown(self):
         with self.app.app_context():

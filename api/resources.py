@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from api.decorators import validate_request_data
-from api.messages import STATUS_404, STATUS_409
+from api.messages import STATUS_404, STATUS_405, STATUS_409
 from api.serializers import book_schema, transaction_schema, user_schema
 from api.services import BookService, TransactionService, UserService
 
@@ -108,6 +108,9 @@ class Transaction(Resource, TransactionService):
 
     @validate_request_data(transaction_schema, partial=True)
     def put(self, transaction_id):
+        if request.json or request.data:
+            abort(405, message=STATUS_405)
+
         try:
             self.update_transaction(transaction_id)
         except NoResultFound:
