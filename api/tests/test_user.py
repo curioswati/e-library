@@ -2,7 +2,7 @@ import re
 import unittest
 
 from api.models import User, db
-from api.serializers import user_schema
+from api.serializers import response_schema, user_schema
 from app import create_app
 
 
@@ -63,7 +63,8 @@ class UserResourceTest(unittest.TestCase):
 
         # Then
         self.assertEqual(201, response.status_code)
-        assert re.match(r'/api/v1/users/\d+/', response.json)
+        self.assertFalse(response_schema.validate(response.json))
+        assert re.match(r'/api/v1/users/\d+/', response.json['url'])
 
     def test_post_user_400(self):
         # Given
@@ -128,7 +129,8 @@ class UserResourceTest(unittest.TestCase):
 
         # Then
         self.assertEqual(201, response.status_code)
-        assert re.match(r'/api/v1/users/\d+/', response.json)
+        self.assertFalse(response_schema.validate(response.json))
+        assert re.match(r'/api/v1/users/\d+/', response.json['url'])
 
     def test_delete_user_200(self):
         # When

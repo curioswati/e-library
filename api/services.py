@@ -15,16 +15,11 @@ class BookService():
     '''
     def get_books(self):
         books = Book.query.all()
-        books_serialized = [book_schema.dump(book) for book in books]
-        return books_serialized
+        return books
 
     def get_book(self, book_id):
         book = Book.query.get(book_id)
-
-        if book:
-            book_serialized = book_schema.dump(book)
-            return book_serialized
-        return
+        return book
 
     def add_book(self, book_json):
         new_book = book_schema.load(book_json)
@@ -41,8 +36,7 @@ class BookService():
             e.message = book_serialized['url']
             raise e
         else:
-            book_serialized = book_schema.dump(new_book)
-            return book_serialized
+            return new_book
 
     def update_book(self, book_id, data):
         existing_book = Book.query.get(book_id)
@@ -52,8 +46,7 @@ class BookService():
             db.session.add(new_book)
             db.session.commit()
 
-            book_serialized = book_schema.dump(new_book)
-            return book_serialized
+            return new_book
 
         else:
             if 'title' in data:
@@ -86,16 +79,11 @@ class UserService():
     '''
     def get_users(self):
         users = User.query.all()
-        users_serialized = [user_schema.dump(user) for user in users]
-        return users_serialized
+        return users
 
     def get_user(self, user_id):
         user = User.query.get(user_id)
-
-        if user:
-            user_serialized = user_schema.dump(user)
-            return user_serialized
-        return
+        return user
 
     def add_user(self, user_json):
         new_user = user_schema.load(user_json)
@@ -113,8 +101,7 @@ class UserService():
             e.message = user_serialized['url']
             raise e
         else:
-            user_serialized = user_schema.dump(new_user)
-            return user_serialized
+            return new_user
 
     def update_user(self, user_id, data):
         existing_user = User.query.get(user_id)
@@ -123,9 +110,7 @@ class UserService():
             new_user = user_schema.load(data)
             db.session.add(new_user)
             db.session.commit()
-
-            user_serialized = user_schema.dump(new_user)
-            return user_serialized
+            return new_user
 
         else:
             if 'email' in data:
@@ -156,18 +141,12 @@ class TransactionService():
     '''
     def get_transactions(self):
         transactions = Transaction.query.all()
-        transactions_serialized = [
-                transaction_schema.dump(transaction) for transaction in transactions
-        ]
-        return transactions_serialized
+        return transactions
 
     def get_transaction(self, transaction_id):
         transaction = Transaction.query.get(transaction_id)
 
-        if transaction:
-            transaction_serialized = transaction_schema.dump(transaction)
-            return transaction_serialized
-        return
+        return transaction
 
     def add_transaction(self, transaction_json):
         book_id = transaction_json.get('book')
@@ -197,8 +176,7 @@ class TransactionService():
         db.session.add(book)
         db.session.commit()
 
-        transaction_serialized = transaction_schema.dump(new_transaction)
-        return transaction_serialized
+        return new_transaction
 
     def update_transaction(self, transaction_id):
         transaction = Transaction.query.get(transaction_id)

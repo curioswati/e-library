@@ -2,7 +2,7 @@ import os
 
 from flask import Flask
 
-from api.api import api
+from api.api import api, docs
 from api.models import db
 from api.serializers import ma
 
@@ -14,6 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 api.init_app(app)
 db.init_app(app)
 ma.init_app(app)
+docs.init_app(app)
 
 
 def create_app(config_name):

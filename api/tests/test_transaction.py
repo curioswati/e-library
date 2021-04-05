@@ -4,7 +4,7 @@ from datetime import datetime
 
 from api.messages import STOCK_SHORTAGE
 from api.models import Book, Transaction, User, db
-from api.serializers import transaction_schema
+from api.serializers import response_schema, transaction_schema
 from app import create_app
 
 
@@ -86,7 +86,8 @@ class TransactionResourceTest(unittest.TestCase):
 
         # Then
         self.assertEqual(201, response.status_code)
-        assert re.match(r'/api/v1/transactions/\d+/', response.json)
+        self.assertFalse(response_schema.validate(response.json))
+        assert re.match(r'/api/v1/transactions/\d+/', response.json['url'])
 
     def test_post_transaction_409(self):
         # Given
