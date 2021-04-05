@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.functions import func
 
-from api.constants import MAX_ALLOWED_DUE
+from api.constants import DEFAULT_RESULT_LIMIT, MAX_ALLOWED_DUE
 from api.messages import OUT_OF_STOCK, OVERDUE, STOCK_SHORTAGE
 from api.models import Book, Transaction, User, db
 from api.serializers import book_schema, transaction_schema, user_schema
@@ -15,15 +15,38 @@ class BookService():
     '''
     Bridge between book resource and model.
     '''
-    def get_books(self, popular, limit):
-        if popular:
-            # Ref: https://stackoverflow.com/q/27900018
-            books = Book.query.join(Transaction, Book.id == Transaction.book, isouter=True)\
-                   .group_by(Book)\
-                   .order_by(desc(func.count(Transaction.book)))\
-                   .limit(limit).all()
+    def get_popular_books(self, limit=DEFAULT_RESULT_LIMIT):
+        # Ref: https://stackoverflow.com/q/27900018
+        books = Book.query.join(Transaction, Book.id == Transaction.book, isouter=True)\
+               .group_by(Book)\
+               .order_by(desc(func.count(Transaction.book)))\
+               .limit(limit).all()
+        return books
+
+    def search_book(self, title, author):
+        if title and author:
+            books = Book.query.filter(Book.title.like(f'%{title}%'),
+                                      Book.author.like(f'%{author}%')
+                                      ).all()
+        elif title:
+            books = Book.query.filter(Book.title.like(f'%{title}%')).all()
+        elif author:
+            books = Book.query.filter(Book.author.like(f'%{author}%')).all()
+        return books
+
+    def get_books(self, request_type, **kwargs):
+        if request_type == 'popular':
+            limit = kwargs.get('limit')
+            books = self.get_popular_books(limit)
+
+        elif request_type == 'search':
+            title = kwargs.get('title')
+            author = kwargs.get('author')
+            books = self.search_book(title, author)
+
         else:
             books = Book.query.all()
+
         return books
 
     def get_book(self, book_id):

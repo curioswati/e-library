@@ -46,9 +46,8 @@ class Book(MethodResource, Resource, BookService):
 
 class Books(MethodResource, Resource, BookService):
     @marshal_with(BookSchema(many=True))
-    def get(self, popular=False):
-        limit = request.args.get('limit')
-        return self.get_books(popular, limit)
+    def get(self, request_type=None):
+        return self.get_books(request_type, **request.args)
 
     @marshal_with(ResponseSchema)
     @validate_request_data(BookSchema(), partial=False)
