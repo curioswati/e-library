@@ -2,7 +2,7 @@ import re
 import unittest
 
 from api.models import Book, db
-from api.serializers import book_schema
+from api.serializers import book_schema, response_schema
 from app import create_app
 
 
@@ -65,7 +65,8 @@ class BookResourceTest(unittest.TestCase):
 
         # Then
         self.assertEqual(201, response.status_code)
-        assert re.match(r'/api/v1/books/\d+/', response.json)
+        self.assertFalse(response_schema.validate(response.json))
+        assert re.match(r'/api/v1/books/\d+/', response.json['url'])
 
     def test_post_book_400(self):
         # Given
@@ -133,7 +134,8 @@ class BookResourceTest(unittest.TestCase):
 
         # Then
         self.assertEqual(201, response.status_code)
-        assert re.match(r'/api/v1/books/\d+/', response.json)
+        self.assertFalse(response_schema.validate(response.json))
+        assert re.match(r'/api/v1/books/\d+/', response.json['url'])
 
     def test_delete_book_200(self):
         # When

@@ -1,9 +1,14 @@
 from flask_marshmallow import Marshmallow
-from marshmallow import post_load
+from marshmallow import Schema, post_load
 
 from api.models import Book, Transaction, User
 
 ma = Marshmallow()
+
+
+class ResponseSchema(Schema):
+    class Meta:
+        fields = ('url', )
 
 
 class BookSchema(ma.SQLAlchemyAutoSchema):
@@ -54,3 +59,4 @@ class TransactionSchema(ma.SQLAlchemyAutoSchema):
 book_schema = BookSchema()
 user_schema = UserSchema()
 transaction_schema = TransactionSchema()
+response_schema = ResponseSchema()

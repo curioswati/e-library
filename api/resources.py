@@ -1,15 +1,20 @@
 from flask import request
+from flask_apispec import marshal_with
+from flask_apispec.views import MethodResource
 from flask_restful import Resource, abort
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
+from api.constants import BOOKS_ENDPOINT, TRANSACTIONS_ENDPOINT, USERS_ENDPOINT
 from api.decorators import validate_request_data
 from api.messages import STATUS_404, STATUS_405, STATUS_409
-from api.serializers import book_schema, transaction_schema, user_schema
+from api.serializers import (BookSchema, ResponseSchema, TransactionSchema,
+                             UserSchema)
 from api.services import BookService, TransactionService, UserService
 
 
-class Book(Resource, BookService):
+class Book(MethodResource, Resource, BookService):
+    @marshal_with(BookSchema)
     def get(self, book_id=None):
         book = self.get_book(book_id)
 
@@ -18,16 +23,18 @@ class Book(Resource, BookService):
 
         return book, 200
 
-    @validate_request_data(book_schema, partial=True)
+    @marshal_with(ResponseSchema, code=204)
+    @validate_request_data(BookSchema(), partial=True)
     def put(self, book_id):
         request_data = request.get_json()
 
         book = self.update_book(book_id, request_data)
         if book:
-            return book['url'], 201
+            return {'url': f'{BOOKS_ENDPOINT}/{str(book.id)}/'}, 201
         else:
             return '', 204
 
+    @marshal_with(ResponseSchema)
     def delete(self, book_id):
         book_id = self.delete_book(book_id)
 
@@ -37,11 +44,13 @@ class Book(Resource, BookService):
             abort(404, message=STATUS_404)
 
 
-class Books(Resource, BookService):
+class Books(MethodResource, Resource, BookService):
+    @marshal_with(BookSchema(many=True))
     def get(self):
         return self.get_books()
 
-    @validate_request_data(book_schema, partial=False)
+    @marshal_with(ResponseSchema)
+    @validate_request_data(BookSchema(), partial=False)
     def post(self):
         request_data = request.get_json()
 
@@ -50,10 +59,11 @@ class Books(Resource, BookService):
         except IntegrityError as e:
             abort(409, message=STATUS_409 % e.message)
         else:
-            return book['url'], 201
+            return {'url': f'{BOOKS_ENDPOINT}/{str(book.id)}/'}, 201
 
 
-class User(Resource, UserService):
+class User(MethodResource, Resource, UserService):
+    @marshal_with(UserSchema)
     def get(self, user_id=None):
         user = self.get_user(user_id)
 
@@ -62,16 +72,18 @@ class User(Resource, UserService):
 
         return user, 200
 
-    @validate_request_data(user_schema, partial=True)
+    @marshal_with(ResponseSchema)
+    @validate_request_data(UserSchema(), partial=True)
     def put(self, user_id):
         request_data = request.get_json()
 
         user = self.update_user(user_id, request_data)
         if user:
-            return user['url'], 201
+            return {'url': f'{USERS_ENDPOINT}/{str(user.id)}/'}, 201
         else:
             return '', 204
 
+    @marshal_with(ResponseSchema)
     def delete(self, user_id):
         user_id = self.delete_user(user_id)
 
@@ -81,11 +93,13 @@ class User(Resource, UserService):
             abort(404, message=STATUS_404)
 
 
-class Users(Resource, UserService):
+class Users(MethodResource, Resource, UserService):
+    @marshal_with(UserSchema(many=True))
     def get(self):
         return self.get_users()
 
-    @validate_request_data(user_schema, partial=False)
+    @marshal_with(ResponseSchema)
+    @validate_request_data(UserSchema(), partial=False)
     def post(self):
         request_data = request.get_json()
 
@@ -94,10 +108,11 @@ class Users(Resource, UserService):
         except IntegrityError as e:
             abort(409, message=STATUS_409 % e.message)
         else:
-            return user['url'], 201
+            return {'url': f'{USERS_ENDPOINT}/{str(user.id)}/'}, 201
 
 
-class Transaction(Resource, TransactionService):
+class Transaction(MethodResource, Resource, TransactionService):
+    @marshal_with(TransactionSchema)
     def get(self, transaction_id=None):
         transaction = self.get_transaction(transaction_id)
 
@@ -106,7 +121,8 @@ class Transaction(Resource, TransactionService):
 
         return transaction, 200
 
-    @validate_request_data(transaction_schema, partial=True)
+    @marshal_with(ResponseSchema)
+    @validate_request_data(TransactionSchema(), partial=True)
     def put(self, transaction_id):
         if request.json or request.data:
             abort(405, message=STATUS_405)
@@ -119,11 +135,13 @@ class Transaction(Resource, TransactionService):
             return '', 204
 
 
-class Transactions(Resource, TransactionService):
+class Transactions(MethodResource, Resource, TransactionService):
+    @marshal_with(TransactionSchema(many=True))
     def get(self):
         return self.get_transactions()
 
-    @validate_request_data(transaction_schema, partial=True)
+    @marshal_with(ResponseSchema)
+    @validate_request_data(TransactionSchema(), partial=True)
     def post(self):
         request_data = request.get_json()
 
@@ -132,4 +150,4 @@ class Transactions(Resource, TransactionService):
         except ValueError as e:
             abort(409, message=e.args[0])
         else:
-            return transaction['url'], 201
+            return {'url': f'{TRANSACTIONS_ENDPOINT}/{str(transaction.id)}/'}, 201
