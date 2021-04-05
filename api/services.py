@@ -1,7 +1,9 @@
 from datetime import datetime
 
+from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql.functions import func
 
 from api.constants import MAX_ALLOWED_DUE
 from api.messages import OUT_OF_STOCK, OVERDUE, STOCK_SHORTAGE
@@ -13,8 +15,15 @@ class BookService():
     '''
     Bridge between book resource and model.
     '''
-    def get_books(self):
-        books = Book.query.all()
+    def get_books(self, popular, limit):
+        if popular:
+            # Ref: https://stackoverflow.com/q/27900018
+            books = Book.query.join(Transaction, Book.id == Transaction.book, isouter=True)\
+                   .group_by(Book)\
+                   .order_by(desc(func.count(Transaction.book)))\
+                   .limit(limit).all()
+        else:
+            books = Book.query.all()
         return books
 
     def get_book(self, book_id):
@@ -77,8 +86,15 @@ class UserService():
     '''
     Bridge between user resource and model.
     '''
-    def get_users(self):
-        users = User.query.all()
+    def get_users(self, highest_paying, limit):
+        if highest_paying:
+            # Ref: https://stackoverflow.com/q/27900018
+            users = User.query.join(Transaction, User.id == Transaction.member, isouter=True)\
+                   .group_by(User)\
+                   .order_by(desc(func.sum(Transaction.rent)))\
+                   .limit(limit).all()
+        else:
+            users = User.query.all()
         return users
 
     def get_user(self, user_id):

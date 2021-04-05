@@ -46,8 +46,9 @@ class Book(MethodResource, Resource, BookService):
 
 class Books(MethodResource, Resource, BookService):
     @marshal_with(BookSchema(many=True))
-    def get(self):
-        return self.get_books()
+    def get(self, popular=False):
+        limit = request.args.get('limit')
+        return self.get_books(popular, limit)
 
     @marshal_with(ResponseSchema)
     @validate_request_data(BookSchema(), partial=False)
@@ -95,8 +96,9 @@ class User(MethodResource, Resource, UserService):
 
 class Users(MethodResource, Resource, UserService):
     @marshal_with(UserSchema(many=True))
-    def get(self):
-        return self.get_users()
+    def get(self, highest_paying=False):
+        limit = request.args.get('limit')
+        return self.get_users(highest_paying, limit)
 
     @marshal_with(ResponseSchema)
     @validate_request_data(UserSchema(), partial=False)
