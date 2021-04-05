@@ -12,6 +12,7 @@ flask-script = "*"
 flask-restful = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
+flask-apispec = "*"
 
 [requires]
 python_version = "3.6"
