@@ -1,2 +1,2 @@
 # e-library
-Library Management System - Assignment for Frappe
+Library Management System
